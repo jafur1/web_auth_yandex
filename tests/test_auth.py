@@ -1,17 +1,22 @@
 import pytest
-from playwright.sync_api import expect
+from data.auth_data import EMAIL, WRONG_PASSWORD
 
-LOGIN_URL = "https://yavshok.ru/login"
+def test_login_form_visible(auth_page):
+    auth_page.goto_login()
+    assert auth_page.is_email_visible(), "Поле Email не найдено"
+    assert auth_page.page.locator(auth_page.password_input).is_visible(), "Поле Пароль не найдено"
+
+def test_login_with_wrong_password(auth_page):
+    auth_page.goto_login()
+    auth_page.login(EMAIL, WRONG_PASSWORD)
+    auth_page.wait_for_error_message("Неправильный логин или пароль")
+    assert auth_page.is_message_visible("Неправильный логин или пароль"), "Сообщение о неправильном пароле не найдено"
+
+def test_login_without_password(auth_page):
+    auth_page.goto_login()
+    auth_page.fill_email(EMAIL)
+    auth_page.click_submit()
+    auth_page.wait_for_error_message("Введите пароль")
+    assert auth_page.is_message_visible("Введите пароль"), "Сообщение 'Введите пароль' не найдено"
 
 
-def test_login_page_title(page):
-    page.goto(LOGIN_URL)
-    assert "Вход" in page.title()
-
-def test_login_form_visible(page):
-    page.goto(LOGIN_URL)
-    assert page.is_visible("form")
-
-def test_login_button_disabled_on_empty(page):
-    page.goto(LOGIN_URL)
-    assert page.is_disabled("button[type='submit']") 
